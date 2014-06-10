@@ -6,9 +6,10 @@ import android.app.Activity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 public class ContentLayout {
-	public static RelativeLayout getLayout(Activity mActivity, int adsType, ImageView ivAds, AdEntity adEntity) {
+	public static RelativeLayout getLayout(Activity mActivity, int adsType, TextView tvAdView, ImageView ivAds, AdEntity adEntity) {
 		
 		RelativeLayout tmpLayout = new RelativeLayout(mActivity);
 		

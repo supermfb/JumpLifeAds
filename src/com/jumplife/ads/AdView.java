@@ -1,13 +1,10 @@
 package com.jumplife.ads;
 
 import java.io.IOException;
-import java.util.Random;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.jumplife.ads.entity.AdEntity;
-import com.jumplife.jumplifeads.R;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -21,13 +18,13 @@ import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 public class AdView extends RelativeLayout {
 
@@ -35,8 +32,6 @@ public class AdView extends RelativeLayout {
 	 * Adview Type and Size
 	 */
 	private int adsType;
-	private int width;
-	private int height;
 	
 	/*
 	 * Ad Data
@@ -48,9 +43,10 @@ public class AdView extends RelativeLayout {
 	private static SparseArray<SparseArray<AdEntity>> typeAdEntitys;	
 	private static int timeRotator = 10000;
 	private static int adsRequestTime = 7200000;
-	
-	private ImageLoader imageLoader;
+
+	private TextView tvAdView;
 	private ImageView ivAdView;
+	private ImageLoader imageLoader;
 	private Bitmap bp;
 	
 	private OkHttpClient client = new OkHttpClient();
@@ -63,8 +59,8 @@ public class AdView extends RelativeLayout {
 	public AdView(Activity mActivity, int width, int height, int adsType) {
 		super(mActivity);
 	    
+		InitView(mActivity);
 		InitSetting(mActivity);
-		SetAdsize(mActivity, width, height, adsType);
 	    
 	    HandlerThread adRotatorThread = new HandlerThread("AdRotatorThread");
 	    adRotatorThread.start();
@@ -96,6 +92,13 @@ public class AdView extends RelativeLayout {
 		adRotatorHandler.removeCallbacks(adRotatorRunnable);
 	}
 
+	private void InitView(Activity mActivity) {
+		
+		tvAdView = new TextView(mActivity);
+		ivAdView = new ImageView(mActivity);
+		
+	}
+	
 	/*
 	 * Init Setting
 	 */
@@ -112,24 +115,7 @@ public class AdView extends RelativeLayout {
 		ImageLoader.getInstance().init(config);
 		imageLoader = ImageLoader.getInstance();
 	}
-	
-	/*
-	 * InitAdSize
-	 */
-	private void SetAdsize(Activity mActivity, int width, int height, int adsType) {
-		DisplayMetrics metrics = new DisplayMetrics();
-		mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		
-		this.width = width;
-		this.height = height;
-		
-		if (width == LayoutParams.MATCH_PARENT)
-			this.width = metrics.widthPixels;
-		
-		if (height == LayoutParams.MATCH_PARENT)
-			this.height = metrics.heightPixels;
-	}
-	
 	/*
 	 * OkHttp request Ads
 	 */
@@ -151,12 +137,45 @@ public class AdView extends RelativeLayout {
 	 * Set ImageView
 	 */
 	private void setView (Activity mActivity) {
-		
-		ivAdView = new ImageView(mActivity);
-		ivAdView.setLayoutParams(new LayoutParams(this.width, this.height));
-		ivAdView.setScaleType(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getScaleType());
 
-		addView(ContentLayout.getLayout(mActivity, adsType, ivAdView, typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType))));
+		RelativeLayout rlTmp = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, 
+				typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)));
+		
+		removeAllViewsInLayout();
+		addView(rlTmp);
+		
+		/*Random r = new Random();
+		int i1 = r.nextInt(5) + 2;
+		int imageId = R.drawable.ads1;
+		if ( i1 == 2 )
+			imageId = R.drawable.ads2;
+		else if ( i1 == 3 )
+			imageId = R.drawable.ads3;
+		else if ( i1 == 4 )
+			imageId = R.drawable.ads4;
+		else if ( i1 == 5 )
+			imageId = R.drawable.ads5;
+		
+		bp = imageLoader.loadImageSync("drawable://" + imageId);*/
+		tvAdView.setText(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getDescription());
+		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getImgUrl());
+		
+		rlTmp.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+		if (mActivity != null && ivAdView != null)
+			mActivity.runOnUiThread( new Runnable() {
+			    public void run() {
+			    	ivAdView.setImageBitmap(bp);
+			    }
+			});
 	}
 	
 	class AdRequestRunnable implements Runnable {
@@ -234,7 +253,6 @@ public class AdView extends RelativeLayout {
 				}
         		if (result != null) {
         			setView(mActivity);
-        			displayAds(mActivity);
         		}
         		if (mActivity != null && ivAdView != null) {
             		adRotatorHandler.postDelayed(this, timeRotator);
@@ -256,40 +274,6 @@ public class AdView extends RelativeLayout {
 			notify();
 		}
 		
-	}
-	
-	private void displayAds (Activity mActivity) {
-		/*Random r = new Random();
-		int i1 = r.nextInt(5) + 2;
-		int imageId = R.drawable.ads1;
-		if ( i1 == 2 )
-			imageId = R.drawable.ads2;
-		else if ( i1 == 3 )
-			imageId = R.drawable.ads3;
-		else if ( i1 == 4 )
-			imageId = R.drawable.ads4;
-		else if ( i1 == 5 )
-			imageId = R.drawable.ads5;
-		
-		bp = imageLoader.loadImageSync("drawable://" + imageId);*/
-		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getImgUrl());
-		
-		ivAdView.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
-		
-		if (mActivity != null && ivAdView != null)
-			mActivity.runOnUiThread( new Runnable() {
-			    public void run() {
-			    	ivAdView.setImageBitmap(bp);
-			    }
-			});
 	}
 
 	class AdRotatorRunnable implements Runnable {
@@ -313,7 +297,7 @@ public class AdView extends RelativeLayout {
 				}
         		
         		if (mActivity != null && ivAdView != null) {
-        			displayAds(mActivity);
+        			setView(mActivity);
         			adRotatorHandler.postDelayed(this, timeRotator);
         		}
         		
