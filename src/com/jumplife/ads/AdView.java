@@ -1,10 +1,13 @@
 package com.jumplife.ads;
 
 import java.io.IOException;
+import java.util.Random;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.jumplife.ads.entity.AdEntity;
+import com.jumplife.jumplifeads.R;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -44,6 +47,7 @@ public class AdView extends RelativeLayout {
 	private static int timeRotator = 10000;
 	private static int adsRequestTime = 7200000;
 
+	private RelativeLayout rlAdLayout;
 	private TextView tvAdView;
 	private ImageView ivAdView;
 	private ImageLoader imageLoader;
@@ -137,14 +141,8 @@ public class AdView extends RelativeLayout {
 	 * Set ImageView
 	 */
 	private void setView (Activity mActivity) {
-
-		RelativeLayout rlTmp = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, 
-				typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)));
 		
-		removeAllViewsInLayout();
-		addView(rlTmp);
-		
-		/*Random r = new Random();
+		Random r = new Random();
 		int i1 = r.nextInt(5) + 2;
 		int imageId = R.drawable.ads1;
 		if ( i1 == 2 )
@@ -156,9 +154,25 @@ public class AdView extends RelativeLayout {
 		else if ( i1 == 5 )
 			imageId = R.drawable.ads5;
 		
-		bp = imageLoader.loadImageSync("drawable://" + imageId);*/
-		tvAdView.setText(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getDescription());
-		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getImgUrl());
+		bp = imageLoader.loadImageSync("drawable://" + imageId);
+		removeAllViewsInLayout();
+		
+		if (mActivity != null && ivAdView != null)
+			mActivity.runOnUiThread( new Runnable() {
+			    public void run() {
+					addView(ivAdView);
+			    	ivAdView.setImageBitmap(bp);
+			    }
+			});
+
+		/*rlAdLayout = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, 
+				typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)));
+		
+		removeAllViewsInLayout();
+		addView(rlTmp);
+		int index = currentAdEntity.get(adsType);
+		tvAdView.setText(typeAdEntitys.get(adsType).valueAt(index).getDescription());
+		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(index).getImgUrl());
 		
 		rlTmp.setOnClickListener(new OnClickListener() {
 
@@ -170,12 +184,18 @@ public class AdView extends RelativeLayout {
 			
 		});
 		
-		if (mActivity != null && ivAdView != null)
+		if (mActivity != null && rlAdLayout != null)
 			mActivity.runOnUiThread( new Runnable() {
 			    public void run() {
+			    	addView(rlAdLayout);
 			    	ivAdView.setImageBitmap(bp);
 			    }
 			});
+		
+		index += 1;
+		if (index >= currentAdEntity.size())
+			index = 0;
+		currentAdEntity.put(adsType, index);*/
 	}
 	
 	class AdRequestRunnable implements Runnable {
@@ -199,12 +219,12 @@ public class AdView extends RelativeLayout {
 				}
 		            
         		String result = null;
-        		try {
+        		/*try {
         			result = AdRequest("");
         		} catch (IOException e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();
-        		}
+        		}*/
         		
         		if (result != null) {
         			/*
@@ -251,13 +271,13 @@ public class AdView extends RelativeLayout {
 					while(suspended)
 						wait();
 				}
-        		if (result != null) {
+        		//if (result != null) {
         			setView(mActivity);
-        		}
-        		if (mActivity != null && ivAdView != null) {
-            		adRotatorHandler.postDelayed(this, timeRotator);
-            		adRequestHandler.postDelayed(this, adsRequestTime);
-        		}
+            		if (mActivity != null && ivAdView != null) {
+                		adRotatorHandler.postDelayed(this, timeRotator);
+                		adRequestHandler.postDelayed(this, adsRequestTime);
+            		}
+        		//}
         		
         	} catch (Exception e) {
         		e.printStackTrace();
