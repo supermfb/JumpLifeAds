@@ -142,6 +142,9 @@ public class AdView extends RelativeLayout {
 	 */
 	private void setView (Activity mActivity) {
 		
+		/*
+		 * fake data
+		 */
 		Random r = new Random();
 		int i1 = r.nextInt(5) + 2;
 		int imageId = R.drawable.ads1;
@@ -152,29 +155,30 @@ public class AdView extends RelativeLayout {
 		else if ( i1 == 4 )
 			imageId = R.drawable.ads4;
 		else if ( i1 == 5 )
-			imageId = R.drawable.ads5;
+			imageId = R.drawable.ads5;		
+		/*
+		 * fake data
+		 */
 		
-		bp = imageLoader.loadImageSync("drawable://" + imageId);
-		removeAllViewsInLayout();
-		
-		if (mActivity != null && ivAdView != null)
-			mActivity.runOnUiThread( new Runnable() {
-			    public void run() {
-					addView(ivAdView);
-			    	ivAdView.setImageBitmap(bp);
-			    }
-			});
-
+		int index = 0;//currentAdEntity.get(adsType);
 		/*rlAdLayout = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, 
-				typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)));
-		
-		removeAllViewsInLayout();
-		addView(rlTmp);
-		int index = currentAdEntity.get(adsType);
+				typeAdEntitys.get(adsType).valueAt(index));
 		tvAdView.setText(typeAdEntitys.get(adsType).valueAt(index).getDescription());
-		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(index).getImgUrl());
+		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(index).getImgUrl());*/
 		
-		rlTmp.setOnClickListener(new OnClickListener() {
+		/*
+		 * fake data
+		 */
+		AdEntity tmpAdEntitys = new AdEntity(0, "", "", 0, "", ScaleType.CENTER_CROP);
+		rlAdLayout = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, tmpAdEntitys);
+		
+		tvAdView.setText(tmpAdEntitys.getDescription());
+		bp = imageLoader.loadImageSync("drawable://" + imageId);
+		/*
+		 * fake data
+		 */
+		
+		rlAdLayout.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -187,13 +191,17 @@ public class AdView extends RelativeLayout {
 		if (mActivity != null && rlAdLayout != null)
 			mActivity.runOnUiThread( new Runnable() {
 			    public void run() {
-			    	addView(rlAdLayout);
-			    	ivAdView.setImageBitmap(bp);
+					ivAdView.setImageBitmap(bp);
+			    	removeAllViewsInLayout();
+					addView(rlAdLayout);
+					
+					/*int adsImpression = typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getAdsImpression();
+					typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).setAdsImpression(adsImpression+1);*/
 			    }
 			});
 		
 		index += 1;
-		if (index >= currentAdEntity.size())
+		/*if (index >= currentAdEntity.size())
 			index = 0;
 		currentAdEntity.put(adsType, index);*/
 	}
@@ -222,7 +230,6 @@ public class AdView extends RelativeLayout {
         		/*try {
         			result = AdRequest("");
         		} catch (IOException e) {
-        			// TODO Auto-generated catch block
         			e.printStackTrace();
         		}*/
         		
@@ -242,8 +249,6 @@ public class AdView extends RelativeLayout {
         				if (tmpObject.has(""))
         					adsID = tmpObject.getInt("");
         				int adsImpression = 0;
-        				if (tmpObject.has(""))
-        					adsImpression = tmpObject.getInt("");
         				String imgUrl = "";
         				if (tmpObject.has(""))
         					imgUrl = tmpObject.getString("");
@@ -271,9 +276,9 @@ public class AdView extends RelativeLayout {
 					while(suspended)
 						wait();
 				}
-        		//if (result != null) {
+        		//if (typeAdEntitys.get(adsType) != null && typeAdEntitys.get(adsType).size() > 0) {
         			setView(mActivity);
-            		if (mActivity != null && ivAdView != null) {
+            		if (mActivity != null) {
                 		adRotatorHandler.postDelayed(this, timeRotator);
                 		adRequestHandler.postDelayed(this, adsRequestTime);
             		}
@@ -316,7 +321,7 @@ public class AdView extends RelativeLayout {
 						wait();
 				}
         		
-        		if (mActivity != null && ivAdView != null) {
+        		if (mActivity != null) {
         			setView(mActivity);
         			adRotatorHandler.postDelayed(this, timeRotator);
         		}
