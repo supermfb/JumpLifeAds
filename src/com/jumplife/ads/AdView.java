@@ -156,7 +156,7 @@ public class AdView extends RelativeLayout {
 		ivAdView.setLayoutParams(new LayoutParams(this.width, this.height));
 		ivAdView.setScaleType(typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getScaleType());
 
-		addView(ContentLayout.getLayout(mActivity, adsType, ivAdView));
+		addView(ContentLayout.getLayout(mActivity, adsType, ivAdView, typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType))));
 	}
 	
 	class AdRequestRunnable implements Runnable {
