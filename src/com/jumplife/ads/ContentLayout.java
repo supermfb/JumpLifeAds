@@ -1,12 +1,14 @@
 package com.jumplife.ads;
 
+import com.jumplife.ads.entity.AdEntity;
+
 import android.app.Activity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 public class ContentLayout {
-	public static RelativeLayout getLayout(Activity mActivity, int adsType, ImageView ivAds) {
+	public static RelativeLayout getLayout(Activity mActivity, int adsType, ImageView ivAds, AdEntity adEntity) {
 		
 		RelativeLayout tmpLayout = new RelativeLayout(mActivity);
 		
