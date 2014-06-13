@@ -1,22 +1,20 @@
 package com.jumplife.ads;
 
 import java.io.IOException;
-import java.util.Random;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.jumplife.ads.entity.AdEntity;
-import com.jumplife.jumplifeads.R;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Handler;
@@ -31,6 +29,7 @@ import android.widget.TextView;
 
 public class AdView extends RelativeLayout {
 
+	private Activity mActivity;
 	/*
 	 * Adview Type and Size
 	 */
@@ -51,7 +50,7 @@ public class AdView extends RelativeLayout {
 	private TextView tvAdView;
 	private ImageView ivAdView;
 	private ImageLoader imageLoader;
-	private Bitmap bp;
+	private DisplayImageOptions options;
 	
 	private OkHttpClient client = new OkHttpClient();
 
@@ -63,18 +62,19 @@ public class AdView extends RelativeLayout {
 	public AdView(Activity mActivity, int width, int height, int adsType) {
 		super(mActivity);
 	    
-		InitView(mActivity);
-		InitSetting(mActivity);
+		this.mActivity = mActivity;
+		InitView();
+		InitSetting();
 	    
-	    HandlerThread adRotatorThread = new HandlerThread("AdRotatorThread");
-	    adRotatorThread.start();
-	    adRotatorHandler = new Handler(adRotatorThread.getLooper());
-	    adRotatorRunnable = new AdRotatorRunnable(mActivity);
+		HandlerThread adRatotorThread = new HandlerThread("AdRotatorThread");
+		adRatotorThread.start();
+	    adRotatorHandler = new Handler(adRatotorThread.getLooper());
+	    adRotatorRunnable = new AdRotatorRunnable();
 		
 		HandlerThread adRequestThread = new HandlerThread("AdRequestThread");
 		adRequestThread.start();
 	    adRequestHandler = new Handler(adRequestThread.getLooper());
-	    adRequestRunnable = new AdRequestRunnable(mActivity);
+	    adRequestRunnable = new AdRequestRunnable();
 	    adRequestHandler.post(adRequestRunnable);
 	}
 	
@@ -96,7 +96,7 @@ public class AdView extends RelativeLayout {
 		adRotatorHandler.removeCallbacks(adRotatorRunnable);
 	}
 
-	private void InitView(Activity mActivity) {
+	private void InitView() {
 		
 		tvAdView = new TextView(mActivity);
 		ivAdView = new ImageView(mActivity);
@@ -106,7 +106,7 @@ public class AdView extends RelativeLayout {
 	/*
 	 * Init Setting
 	 */
-	private void InitSetting(Activity mActivity) {
+	private void InitSetting() {
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(mActivity)
         .discCacheExtraOptions(480, 800, CompressFormat.JPEG, 75, null)
         .denyCacheImageMultipleSizesInMemory()
@@ -117,6 +117,12 @@ public class AdView extends RelativeLayout {
         .writeDebugLogs()
         .build();
 		ImageLoader.getInstance().init(config);
+		
+		options = new DisplayImageOptions.Builder()
+	    .resetViewBeforeLoading(false)
+	    .imageScaleType(ImageScaleType.EXACTLY)
+	    .build();
+		
 		imageLoader = ImageLoader.getInstance();
 	}
 		
@@ -140,81 +146,65 @@ public class AdView extends RelativeLayout {
 	/*
 	 * Set ImageView
 	 */
-	private void setView (Activity mActivity) {
+	private void setView () {
 		
-		/*
-		 * fake data
-		 */
-		Random r = new Random();
-		int i1 = r.nextInt(5) + 2;
-		int imageId = R.drawable.ads1;
-		if ( i1 == 2 )
-			imageId = R.drawable.ads2;
-		else if ( i1 == 3 )
-			imageId = R.drawable.ads3;
-		else if ( i1 == 4 )
-			imageId = R.drawable.ads4;
-		else if ( i1 == 5 )
-			imageId = R.drawable.ads5;		
-		/*
-		 * fake data
-		 */
-		
-		int index = 0;//currentAdEntity.get(adsType);
-		/*rlAdLayout = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, 
-				typeAdEntitys.get(adsType).valueAt(index));
-		tvAdView.setText(typeAdEntitys.get(adsType).valueAt(index).getDescription());
-		bp = imageLoader.loadImageSync(typeAdEntitys.get(adsType).valueAt(index).getImgUrl());*/
-		
-		/*
-		 * fake data
-		 */
-		AdEntity tmpAdEntitys = new AdEntity(0, "", "", 0, "", ScaleType.CENTER_CROP);
-		rlAdLayout = ContentLayout.getLayout(mActivity, adsType, tvAdView, ivAdView, tmpAdEntitys);
-		
-		tvAdView.setText(tmpAdEntitys.getDescription());
-		bp = imageLoader.loadImageSync("drawable://" + imageId);
-		/*
-		 * fake data
-		 */
-		
-		rlAdLayout.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
-		
-		if (mActivity != null && rlAdLayout != null)
+		if (mActivity != null)
 			mActivity.runOnUiThread( new Runnable() {
 			    public void run() {
-					ivAdView.setImageBitmap(bp);
-			    	removeAllViewsInLayout();
+					
+					int index = 0;//currentAdEntity.get(adsType);
+
+			    	removeAllViews();
+			    	if (rlAdLayout != null)
+			    		rlAdLayout.removeAllViews();
+			    	
+					/*
+					rlAdLayout = ContentLayout.getLayout(mActivity, imageLoader, options, adsType, tvAdView, ivAdView
+							typeAdEntitys.get(adsType).valueAt(index));
+					tvAdView.setText(typeAdEntitys.get(adsType).valueAt(index).getDescription());
+					*/
+					
+					/*
+					 * fake data
+					 */			    	
+					AdEntity tmpAdEntitys = new AdEntity(0, "", "", 0, "", ScaleType.CENTER_CROP);
+					rlAdLayout = ContentLayout.getLayout(mActivity, imageLoader, options, adsType, tvAdView, ivAdView, tmpAdEntitys);
+					
+					tvAdView.setText(tmpAdEntitys.getDescription());
+					/*
+					 * fake data
+					 */
+					
+					rlAdLayout.setOnClickListener(new OnClickListener() {
+
+						@Override
+						public void onClick(View v) {
+							// TODO Auto-generated method stub
+							
+						}
+						
+					});
+					
 					addView(rlAdLayout);
 					
 					/*int adsImpression = typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).getAdsImpression();
 					typeAdEntitys.get(adsType).valueAt(currentAdEntity.get(adsType)).setAdsImpression(adsImpression+1);*/
+					
+					index += 1;
+					/*if (index >= currentAdEntity.size())
+						index = 0;
+					currentAdEntity.put(adsType, index);*/
 			    }
 			});
-		
-		index += 1;
-		/*if (index >= currentAdEntity.size())
-			index = 0;
-		currentAdEntity.put(adsType, index);*/
 	}
 	
 	class AdRequestRunnable implements Runnable {
 
-		Activity mActivity;
 		Uri url;
 		
 		boolean suspended = false;
 		
-		AdRequestRunnable(Activity mActivity) {
-			this.mActivity = mActivity;
+		AdRequestRunnable() {
 		}
 		
 		@Override
@@ -277,7 +267,7 @@ public class AdView extends RelativeLayout {
 						wait();
 				}
         		//if (typeAdEntitys.get(adsType) != null && typeAdEntitys.get(adsType).size() > 0) {
-        			setView(mActivity);
+        			setView();
             		if (mActivity != null) {
                 		adRotatorHandler.postDelayed(this, timeRotator);
                 		adRequestHandler.postDelayed(this, adsRequestTime);
@@ -303,13 +293,11 @@ public class AdView extends RelativeLayout {
 
 	class AdRotatorRunnable implements Runnable {
 
-		Activity mActivity;
 		Uri url;
 		
 		boolean suspended = false;
 		
-		AdRotatorRunnable(Activity mActivity) {
-			this.mActivity = mActivity;
+		AdRotatorRunnable() {
 		}
 		
 		@Override
@@ -322,7 +310,7 @@ public class AdView extends RelativeLayout {
 				}
         		
         		if (mActivity != null) {
-        			setView(mActivity);
+        			setView();
         			adRotatorHandler.postDelayed(this, timeRotator);
         		}
         		
